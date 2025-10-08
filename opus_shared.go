@@ -56,6 +56,14 @@ package gopus
 // void gopus_decoder_resetstate(OpusDecoder *decoder) {
 //   opus_decoder_ctl(decoder, OPUS_RESET_STATE);
 // }
+//
+// opus_int32 gopus_setfec(OpusEncoder *encoder, int fec) {
+//   return opus_encoder_ctl(encoder, OPUS_SET_INBAND_FEC(fec));
+// }
+//
+// opus_int32 gopus_setdtx(OpusEncoder *encoder, int dtx) {
+//   return opus_encoder_ctl(encoder, OPUS_SET_DTX(dtx));
+// }
 import "C"
 
 import (
@@ -135,6 +143,26 @@ func (e *Encoder) Application() Application {
 
 func (e *Encoder) ResetState() {
 	C.gopus_encoder_resetstate(e.cEncoder)
+}
+
+// SetInbandFEC enables or disables Forward Error Correction
+func (e *Encoder) SetInbandFEC(enable bool) error {
+	var val C.int
+	if enable {
+		val = 1
+	}
+	ret := C.gopus_setfec(e.cEncoder, val)
+	return getErr(ret)
+}
+
+// SetDTX enables or disables Discontinuous Transmission
+func (e *Encoder) SetDTX(enable bool) error {
+	var val C.int
+	if enable {
+		val = 1
+	}
+	ret := C.gopus_setdtx(e.cEncoder, val)
+	return getErr(ret)
 }
 
 type Decoder struct {
