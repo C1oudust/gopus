@@ -64,6 +64,110 @@ package gopus
 // opus_int32 gopus_setdtx(OpusEncoder *encoder, int dtx) {
 //   return opus_encoder_ctl(encoder, OPUS_SET_DTX(dtx));
 // }
+//
+// void gopus_set_complexity(OpusEncoder *encoder, int complexity) {
+//   opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY(complexity));
+// }
+//
+// opus_int32 gopus_get_complexity(OpusEncoder *encoder) {
+//   opus_int32 complexity;
+//   opus_encoder_ctl(encoder, OPUS_GET_COMPLEXITY(&complexity));
+//   return complexity;
+// }
+//
+// void gopus_set_max_bandwidth(OpusEncoder *encoder, int bandwidth) {
+//   opus_encoder_ctl(encoder, OPUS_SET_MAX_BANDWIDTH(bandwidth));
+// }
+//
+// opus_int32 gopus_get_max_bandwidth(OpusEncoder *encoder) {
+//   opus_int32 bandwidth;
+//   opus_encoder_ctl(encoder, OPUS_GET_MAX_BANDWIDTH(&bandwidth));
+//   return bandwidth;
+// }
+//
+// void gopus_set_bandwidth(OpusEncoder *encoder, int bandwidth) {
+//   opus_encoder_ctl(encoder, OPUS_SET_BANDWIDTH(bandwidth));
+// }
+//
+// void gopus_set_signal(OpusEncoder *encoder, int signal) {
+//   opus_encoder_ctl(encoder, OPUS_SET_SIGNAL(signal));
+// }
+//
+// opus_int32 gopus_get_signal(OpusEncoder *encoder) {
+//   opus_int32 signal;
+//   opus_encoder_ctl(encoder, OPUS_GET_SIGNAL(&signal));
+//   return signal;
+// }
+//
+// void gopus_set_vbr_constraint(OpusEncoder *encoder, int constraint) {
+//   opus_encoder_ctl(encoder, OPUS_SET_VBR_CONSTRAINT(constraint));
+// }
+//
+// opus_int32 gopus_get_vbr_constraint(OpusEncoder *encoder) {
+//   opus_int32 constraint;
+//   opus_encoder_ctl(encoder, OPUS_GET_VBR_CONSTRAINT(&constraint));
+//   return constraint;
+// }
+//
+// void gopus_set_force_channels(OpusEncoder *encoder, int channels) {
+//   opus_encoder_ctl(encoder, OPUS_SET_FORCE_CHANNELS(channels));
+// }
+//
+// opus_int32 gopus_get_force_channels(OpusEncoder *encoder) {
+//   opus_int32 channels;
+//   opus_encoder_ctl(encoder, OPUS_GET_FORCE_CHANNELS(&channels));
+//   return channels;
+// }
+//
+// void gopus_set_packet_loss_perc(OpusEncoder *encoder, int perc) {
+//   opus_encoder_ctl(encoder, OPUS_SET_PACKET_LOSS_PERC(perc));
+// }
+//
+// opus_int32 gopus_get_packet_loss_perc(OpusEncoder *encoder) {
+//   opus_int32 perc;
+//   opus_encoder_ctl(encoder, OPUS_GET_PACKET_LOSS_PERC(&perc));
+//   return perc;
+// }
+//
+// void gopus_set_lsb_depth(OpusEncoder *encoder, int depth) {
+//   opus_encoder_ctl(encoder, OPUS_SET_LSB_DEPTH(depth));
+// }
+//
+// opus_int32 gopus_get_lsb_depth(OpusEncoder *encoder) {
+//   opus_int32 depth;
+//   opus_encoder_ctl(encoder, OPUS_GET_LSB_DEPTH(&depth));
+//   return depth;
+// }
+//
+// void gopus_set_prediction_disabled(OpusEncoder *encoder, int disabled) {
+//   opus_encoder_ctl(encoder, OPUS_SET_PREDICTION_DISABLED(disabled));
+// }
+//
+// opus_int32 gopus_get_prediction_disabled(OpusEncoder *encoder) {
+//   opus_int32 disabled;
+//   opus_encoder_ctl(encoder, OPUS_GET_PREDICTION_DISABLED(&disabled));
+//   return disabled;
+// }
+//
+// void gopus_set_phase_inversion_disabled(OpusEncoder *encoder, int disabled) {
+//   opus_encoder_ctl(encoder, OPUS_SET_PHASE_INVERSION_DISABLED(disabled));
+// }
+//
+// opus_int32 gopus_get_phase_inversion_disabled(OpusEncoder *encoder) {
+//   opus_int32 disabled;
+//   opus_encoder_ctl(encoder, OPUS_GET_PHASE_INVERSION_DISABLED(&disabled));
+//   return disabled;
+// }
+//
+// void gopus_set_dred_duration(OpusEncoder *encoder, int duration) {
+//   opus_encoder_ctl(encoder, OPUS_SET_DRED_DURATION(duration));
+// }
+//
+// opus_int32 gopus_get_dred_duration(OpusEncoder *encoder) {
+//   opus_int32 duration;
+//   opus_encoder_ctl(encoder, OPUS_GET_DRED_DURATION(&duration));
+//   return duration;
+// }
 import "C"
 
 import (
@@ -77,6 +181,38 @@ const (
 	Voip               Application = C.gopus_application_voip
 	Audio              Application = C.gopus_application_audio
 	RestrictedLowDelay Application = C.gopus_restricted_lowdelay
+)
+
+type Signal int
+type Bandwidth int
+
+const (
+	// Auto bandwidth or signal type.
+	Auto Signal = C.OPUS_AUTO
+	// Voice signal type.
+	Voice Signal = C.OPUS_SIGNAL_VOICE
+	// Music signal type.
+	Music Signal = C.OPUS_SIGNAL_MUSIC
+)
+
+const (
+	// BandwidthAuto lets the encoder decide the bandwidth.
+	BandwidthAuto Bandwidth = C.OPUS_AUTO
+	// Narrowband is 4kHz bandpass.
+	Narrowband Bandwidth = C.OPUS_BANDWIDTH_NARROWBAND
+	// Mediumband is 6kHz bandpass.
+	Mediumband Bandwidth = C.OPUS_BANDWIDTH_MEDIUMBAND
+	// Wideband is 8kHz bandpass.
+	Wideband Bandwidth = C.OPUS_BANDWIDTH_WIDEBAND
+	// Superwideband is 12kHz bandpass.
+	Superwideband Bandwidth = C.OPUS_BANDWIDTH_SUPERWIDEBAND
+	// Fullband is 20kHz bandpass.
+	Fullband Bandwidth = C.OPUS_BANDWIDTH_FULLBAND
+)
+
+const (
+	// ChannelsAuto lets the encoder decide the number of channels.
+	ChannelsAuto = C.OPUS_AUTO
 )
 
 const (
@@ -163,6 +299,135 @@ func (e *Encoder) SetDTX(enable bool) error {
 	}
 	ret := C.gopus_setdtx(e.cEncoder, val)
 	return getErr(ret)
+}
+
+// SetComplexity configures the encoder's computational complexity.
+// The supported range is 0-10 inclusive with 10 representing the highest complexity.
+func (e *Encoder) SetComplexity(complexity int) {
+	C.gopus_set_complexity(e.cEncoder, C.int(complexity))
+}
+
+// Complexity gets the encoder's complexity configuration.
+// Returns a value in the range 0-10, inclusive.
+func (e *Encoder) Complexity() int {
+	return int(C.gopus_get_complexity(e.cEncoder))
+}
+
+// SetMaxBandwidth configures the maximum bandpass that the encoder will select automatically.
+// Applications should normally use this instead of SetBandwidth.
+func (e *Encoder) SetMaxBandwidth(bandwidth Bandwidth) {
+	C.gopus_set_max_bandwidth(e.cEncoder, C.int(bandwidth))
+}
+
+// MaxBandwidth gets the encoder's configured maximum allowed bandpass.
+func (e *Encoder) MaxBandwidth() Bandwidth {
+	return Bandwidth(C.gopus_get_max_bandwidth(e.cEncoder))
+}
+
+// SetBandwidth sets the encoder's bandpass to a specific value.
+// This prevents the encoder from automatically selecting the bandpass based on the available bitrate.
+func (e *Encoder) SetBandwidth(bandwidth Bandwidth) {
+	C.gopus_set_bandwidth(e.cEncoder, C.int(bandwidth))
+}
+
+// SetSignal configures the type of signal being encoded.
+// This is a hint which helps the encoder's mode selection.
+func (e *Encoder) SetSignal(signal Signal) {
+	C.gopus_set_signal(e.cEncoder, C.int(signal))
+}
+
+// Signal gets the encoder's configured signal type.
+func (e *Encoder) Signal() Signal {
+	return Signal(C.gopus_get_signal(e.cEncoder))
+}
+
+// SetVBRConstraint enables or disables constrained VBR in the encoder.
+// This setting is ignored when the encoder is in CBR mode.
+func (e *Encoder) SetVBRConstraint(enable bool) {
+	var val C.int
+	if enable {
+		val = 1
+	}
+	C.gopus_set_vbr_constraint(e.cEncoder, val)
+}
+
+// VBRConstraint determines if constrained VBR is enabled in the encoder.
+func (e *Encoder) VBRConstraint() bool {
+	return C.gopus_get_vbr_constraint(e.cEncoder) != 0
+}
+
+// SetForceChannels configures mono/stereo forcing in the encoder.
+// Use ChannelsAuto for default behavior.
+func (e *Encoder) SetForceChannels(channels int) {
+	C.gopus_set_force_channels(e.cEncoder, C.int(channels))
+}
+
+// ForceChannels gets the encoder's forced channel configuration.
+func (e *Encoder) ForceChannels() int {
+	return int(C.gopus_get_force_channels(e.cEncoder))
+}
+
+// SetPacketLossPerc configures the encoder's expected packet loss percentage.
+// Higher values trigger progressively more loss resistant behavior.
+func (e *Encoder) SetPacketLossPerc(perc int) {
+	C.gopus_set_packet_loss_perc(e.cEncoder, C.int(perc))
+}
+
+// PacketLossPerc gets the encoder's configured packet loss percentage.
+func (e *Encoder) PacketLossPerc() int {
+	return int(C.gopus_get_packet_loss_perc(e.cEncoder))
+}
+
+// SetLSBDepth configures the depth of the signal being encoded.
+// It represents the number of significant bits of linear intensity.
+func (e *Encoder) SetLSBDepth(depth int) {
+	C.gopus_set_lsb_depth(e.cEncoder, C.int(depth))
+}
+
+// LSBDepth gets the encoder's configured signal depth.
+func (e *Encoder) LSBDepth() int {
+	return int(C.gopus_get_lsb_depth(e.cEncoder))
+}
+
+// SetPredictionDisabled disables almost all use of prediction, making frames almost completely independent.
+// This reduces quality but can be useful for debugging or specific applications.
+func (e *Encoder) SetPredictionDisabled(disable bool) {
+	var val C.int
+	if disable {
+		val = 1
+	}
+	C.gopus_set_prediction_disabled(e.cEncoder, val)
+}
+
+// PredictionDisabled gets the encoder's configured prediction status.
+func (e *Encoder) PredictionDisabled() bool {
+	return C.gopus_get_prediction_disabled(e.cEncoder) != 0
+}
+
+// SetPhaseInversionDisabled disables the use of phase inversion for intensity stereo.
+// This improves the quality of mono downmixes but slightly reduces normal stereo quality.
+func (e *Encoder) SetPhaseInversionDisabled(disable bool) {
+	var val C.int
+	if disable {
+		val = 1
+	}
+	C.gopus_set_phase_inversion_disabled(e.cEncoder, val)
+}
+
+// PhaseInversionDisabled gets the encoder's configured phase inversion status.
+func (e *Encoder) PhaseInversionDisabled() bool {
+	return C.gopus_get_phase_inversion_disabled(e.cEncoder) != 0
+}
+
+// SetDREDDuration enables Deep Redundancy (DRED) and sets the maximum number of 10-ms redundant frames.
+// A value of 0 disables DRED.
+func (e *Encoder) SetDREDDuration(duration int) {
+	C.gopus_set_dred_duration(e.cEncoder, C.int(duration))
+}
+
+// DREDDuration gets the encoder's configured Deep Redundancy (DRED) maximum number of frames.
+func (e *Encoder) DREDDuration() int {
+	return int(C.gopus_get_dred_duration(e.cEncoder))
 }
 
 type Decoder struct {
